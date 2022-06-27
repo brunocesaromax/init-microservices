@@ -87,6 +87,27 @@ services:
     networks:
       - microservices-net
 
+  book-service:
+    image: brunocesar96/book-service:0.0.1-SNAPSHOT
+    restart: always
+    ports:
+      - "8100:8100"
+    depends_on:
+      - naming-server
+      - book-db
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      SPRING.DATASOURCE.URL: jdbc:postgresql://book-db:54322/book_service
+      SPRING.DATASOURCE.USERNAME: root
+      SPRING.DATASOURCE.PASSWORD: admin123
+      SPRING.FLYWAY.URL: jdbc:postgresql://book-db:54322/book_service
+      SPRING.FLYWAY.USER: root
+      SPRING.FLYWAY.PASSWORD: admin123
+    networks:
+      - microservices-net
+
 networks:
   microservices-net:
     driver: bridge
