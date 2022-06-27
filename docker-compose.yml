@@ -8,6 +8,36 @@ services:
     networks:
       - microservices-net
 
+  cambio-db:
+    image: postgres:12.5
+    environment:
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "admin123"
+    expose:
+      - "54321"
+    ports:
+      - "54321:54321"
+    volumes:
+      - ./cambio-docker-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: -p 54321
+    networks:
+      - microservices-net
+
+  book-db:
+    image: postgres:12.5
+    environment:
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "admin123"
+    expose:
+      - "54322"
+    ports:
+      - "54322:54322"
+    volumes:
+      - ./book-docker-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: -p 54322
+    networks:
+      - microservices-net
+
   naming-server:
     image: brunocesar96/naming-server:0.0.1-SNAPSHOT
     ports:
