@@ -1,0 +1,12 @@
+[submodule "api-gateway"]
+	path = api-gateway
+	url = https://github.com/brunocesaromax/init-microservices-api-gateway.git
+[submodule "naming-server"]
+	path = naming-server
+	url = https://github.com/brunocesaromax/init-microservices-naming-server.git
+[submodule "cambio-service"]
+	path = cambio-service
+	url = https://github.com/brunocesaromax/init-microservices-cambio-service.git
+[submodule "book-service"]
+	path = book-service
+	url = https://github.com/brunocesaromax/init-microservices-book-service.git
