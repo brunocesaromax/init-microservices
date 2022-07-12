@@ -32,11 +32,20 @@ jobs:
         working-directory: ./api-gateway
         run: mvn spring-boot:build-image -DskipTests
         
-      - name: Build Cambio Microservice Jar
+#         Criando microserviços via JAR
+#       - name: Build Cambio Microservice Jar
+#         working-directory: ./cambio-service
+#         run: mvn clean package -DskipTests
+        
+#       - name: Build Book Microservice Jar
+#         working-directory: ./book-service
+#         run: mvn clean package -DskipTests
+
+      - name: Build Cambio Microservice Container Image
         working-directory: ./cambio-service
         run: mvn clean package -DskipTests
         
-      - name: Build Book Microservice Jar
+      - name: Build Book Microservice Container Image
         working-directory: ./book-service
         run: mvn clean package -DskipTests
       
