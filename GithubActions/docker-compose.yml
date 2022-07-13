@@ -1,0 +1,142 @@
+version: '3.4'
+
+services:
+  zipkin-server:
+    image: openzipkin/zipkin
+    environment:
+      TZ: America/Sao_Paulo
+      RABBIT_ADDRESSES: rabbitmq
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "9411:9411"
+    expose:
+      - "9411"
+    restart: always
+    depends_on:
+      - rabbitmq
+    networks:
+      - microservices-net
+
+  rabbitmq:
+    image: rabbitmq:3.7.8-management
+    environment:
+      TZ: America/Sao_Paulo
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservices-net
+
+  cambio-db:
+    image: postgres:12.5
+    environment:
+      TZ: America/Sao_Paulo
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "admin123"
+      POSTGRESQL_ENABLE_TLS:
+    expose:
+      - "54321"
+    ports:
+      - "54321:54321"
+    volumes:
+      - ./cambio-docker-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: -p 54321
+    networks:
+      - microservices-net
+
+  book-db:
+    image: postgres:12.5
+    environment:
+      TZ: America/Sao_Paulo
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "admin123"
+    expose:
+      - "54322"
+    ports:
+      - "54322:54322"
+    volumes:
+      - ./book-docker-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: -p 54322
+    networks:
+      - microservices-net
+
+  naming-server:
+    image: brunocesar96/naming-server:latest
+    environment:
+      TZ: America/Sao_Paulo
+    ports:
+      - "8761:8761"
+    networks: #Rede de comunicação entre os microserviços
+      - microservices-net
+
+  api-gateway:
+    image: brunocesar96/api-gateway:latest
+    restart: always
+    ports:
+      - "8765:8765"
+    depends_on:
+      - naming-server
+      - rabbitmq
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_ZIPKING_SENDER_TYPE: rabbit
+    networks:
+      - microservices-net
+
+  cambio-service:
+    image: brunocesar96/cambio-service:latest
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - naming-server
+      - cambio-db
+      - rabbitmq
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      SPRING.DATASOURCE.URL: jdbc:postgresql://cambio-db:54321/cambio_service
+      SPRING.DATASOURCE.USERNAME: root
+      SPRING.DATASOURCE.PASSWORD: admin123
+      SPRING.FLYWAY.URL: jdbc:postgresql://cambio-db:54321/cambio_service
+      SPRING.FLYWAY.USER: root
+      SPRING.FLYWAY.PASSWORD: admin123
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_ZIPKING_SENDER_TYPE: rabbit
+    networks:
+      - microservices-net
+
+  book-service:
+    image: brunocesar96/book-service:latest
+    restart: always
+    ports:
+      - "8100:8100"
+    depends_on:
+      - naming-server
+      - book-db
+      - rabbitmq
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      SPRING.DATASOURCE.URL: jdbc:postgresql://book-db:54322/book_service
+      SPRING.DATASOURCE.USERNAME: root
+      SPRING.DATASOURCE.PASSWORD: admin123
+      SPRING.FLYWAY.URL: jdbc:postgresql://book-db:54322/book_service
+      SPRING.FLYWAY.USER: root
+      SPRING.FLYWAY.PASSWORD: admin123
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_ZIPKING_SENDER_TYPE: rabbit
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge
