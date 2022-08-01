@@ -138,6 +138,7 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: rabbitmq
       SPRING_RABBITMQ_PASSWORD: rabbitmq
+      SPRING_RABBITMQ_LISTENER_SIMPLE_DEFAULTREQUEUEREJECTED: 'false'
       SPRING_ZIPKING_SENDER_TYPE: rabbit
     networks:
       - microservices-net
